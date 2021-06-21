@@ -1,6 +1,4 @@
 # pong-python
-Single player pong game in python using pygame library.
+Single player pong game in python using pygame library and Pose Camera.
 
-Use left and right arrow keys to move the paddle. 
-Be gentle! 
-Dont press both keys simultaneously or the paddle gets stuck for a second.
+You can find the original code of this game from this repository: https://github.com/skar91/pong-python
