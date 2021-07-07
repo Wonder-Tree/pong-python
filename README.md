@@ -19,3 +19,6 @@ Run the game
 python pong.py
 ```
 
+## Output
+
+![PoseCamera]("outputs/ezgif-1-c20809885e88.gif")
