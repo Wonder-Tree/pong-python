@@ -1,3 +1,4 @@
+from operator import pos
 import pygame
 import posecamera
 import cv2
@@ -8,7 +9,8 @@ WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
-posecamera.load("checkpoint_iter_50000.pth", False)
+
+det = posecamera.pose_tracker.PoseTracker()
 cam = cv2.VideoCapture(0)
 
 pygame.init()
@@ -16,7 +18,7 @@ pygame.init()
 # Initializing the display window
 size = (800, 600)
 screen = pygame.display.set_mode(size)
-pygame.display.set_caption("pong")
+pygame.display.set_caption("Pong - PoseCamera")
 
 # Starting coordinates of the paddle
 rect_x = 400
@@ -44,27 +46,7 @@ def drawrect(screen, x, y):
         x = 0
     if x >= 699:
         x = 699
-    pygame.draw.rect(screen, RED, [x, y, 100, 20])
-
-
-'''def drawball(screen,x,y):
-    if x<0:
-        x=0
-        ball_change_x = ball_change_x * -1
-    elif x>785:
-        x=785
-        ball_change_x = ball_change_x * -1
-    elif y<0:
-        y=0
-        ball_change_y = ball_change_y * -1
-    elif x>rect_x and x<rect_x+100 and y==565:
-        ball_change_y = ball_change_y * -1
-    elif y>600:
-        ball_change_y = ball_change_y * -1                        
-    pygame.draw.rect(screen,WHITE,[x,y,15,15])'''
-
-
-
+    pygame.draw.rect(screen, RED, [x, y, 150, 40])
 
 # game's main loop
 done = False
@@ -76,15 +58,13 @@ while not done:
         image = cv2.flip(image, 1)
         image = cv2.resize(image, (800, 600))
 
-        poses = posecamera.estimate(image)
-        for pose in poses:
+        pose = det(image)
 
+        # get nose coordinates
+        nose = pose.keypoints["nose"]
 
-            nose = pose.keypoints[0]
-            if nose[0] != -1:
-                rect_x = nose[0]
-                print(rect_x)
-        #rect_y = nose[1]
+        # set the controller according to nose x position
+        rect_x = nose[0]
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -94,10 +74,7 @@ while not done:
                 rect_change_x = -6
             elif event.key == pygame.K_RIGHT:
                 rect_change_x = 6
-            # elif event.key == pygame.K_UP:
-            # rect_change_y = -6
-            # elif event.key == pygame.K_DOWN:
-            # rect_change_y = 6'''
+
         elif event.type == pygame.KEYUP:
             if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
                 rect_change_x = 0
@@ -105,7 +82,14 @@ while not done:
                 rect_change_y = 0
 
 
-    screen.fill(BLACK)
+    # draw webcam frame
+    image =cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    image = np.fliplr(image)
+    image = np.rot90(image)
+
+    pyframe = pygame.surfarray.make_surface(image)
+    screen.blit(pyframe, (0, 0))
+
     rect_x += rect_change_x
     rect_y += rect_change_y
 
@@ -128,20 +112,19 @@ while not done:
     elif ball_y > 600:
         ball_change_y = ball_change_y * -1
         score = 0
-    pygame.draw.rect(screen, WHITE, [ball_x, ball_y, 15, 15])
+
+    pygame.draw.circle(screen, BLUE, (ball_x, ball_y), 20)
 
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     image = np.fliplr(image)
     image = np.rot90(image)
-    pyframe = pygame.surfarray.make_surface(image)
-    #screen.blit(pyframe, (0, 0))
-    # drawball(screen,ball_x,ball_y)
+    
     drawrect(screen, rect_x, rect_y)
 
     # score board
-    font = pygame.font.SysFont('Calibri', 15, False, False)
-    text = font.render("Score = " + str(score), True, WHITE)
-    screen.blit(text, [600, 100])
+    font = pygame.font.SysFont('Arial', 30, False, False)
+    text = font.render("Score " + str(score), True, WHITE)
+    screen.blit(text, [380, 50])
 
     pygame.display.flip()
     clock.tick(60)
