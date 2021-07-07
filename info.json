@@ -1,0 +1,9 @@
+
+{
+    "version": "0",
+    "title": "Pong",
+    "description": "Pong is a popular classic game. You have to controll ladder with your body movement and don't let the ball touch the ground.",
+    "entry": "pong.py",
+    "tags": "cognative skills, hand eye coordination, motor skills",
+    "icon": "icon.jpg"
+}
